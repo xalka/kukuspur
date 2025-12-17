@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Three Step Tabs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+
+  <div class="max-w-xl mx-auto bg-white shadow-md rounded-xl p-6">
+    <!-- Step Indicators -->
+    <div class="flex justify-between items-center mb-6">
+      <div class="step-indicator step-active text-blue-600 font-medium">Step 1</div>
+      <div class="step-indicator text-gray-400">Step 2</div>
+      <div class="step-indicator text-gray-400">Step 3</div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="step-content block">
+      <h2 class="text-xl font-semibold mb-2">Step 1</h2>
+      <p class="mb-4">This is the content for Step 1.</p>
+      <button class="next-step bg-blue-600 text-white px-4 py-2 rounded">Next</button>
+    </div>
+
+    <div class="step-content hidden">
+      <h2 class="text-xl font-semibold mb-2">Step 2</h2>
+      <p class="mb-4">This is the content for Step 2.</p>
+      <button class="prev-step bg-gray-400 text-white px-4 py-2 rounded mr-2">Back</button>
+      <button class="next-step bg-blue-600 text-white px-4 py-2 rounded">Next</button>
+    </div>
+
+    <div class="step-content hidden">
+      <h2 class="text-xl font-semibold mb-2">Step 3</h2>
+      <p class="mb-4">This is the content for Step 3.</p>
+      <button class="prev-step bg-gray-400 text-white px-4 py-2 rounded mr-2">Back</button>
+      <button class="submit-step bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      let currentStep = 0;
+
+      function updateSteps() {
+        // Show correct content
+        $('.step-content').hide().eq(currentStep).show();
+
+        // Update step indicators
+        $('.step-indicator').each(function (index) {
+          $(this)
+            .removeClass('text-blue-600 font-medium')
+            .addClass('text-gray-400');
+
+          if (index === currentStep) {
+            $(this)
+              .addClass('text-blue-600 font-medium')
+              .removeClass('text-gray-400');
+          }
+        });
+      }
+
+      $('.next-step').click(function () {
+        if (currentStep < 2) {
+          currentStep++;
+          updateSteps();
+        }
+      });
+
+      $('.prev-step').click(function () {
+        if (currentStep > 0) {
+          currentStep--;
+          updateSteps();
+        }
+      });
+
+      $('.submit-step').click(function () {
+        alert('Form submitted!');
+      });
+
+      updateSteps(); // Initialize view
+    });
+  </script>
+
+</body>
+</html>

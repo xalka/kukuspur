@@ -1,0 +1,329 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS Here */
+
+@layer components {
+    .card-wrapper {
+        @apply min-w-[12rem] max-w-[20rem] w-full flex flex-col justify-between hover:rounded-b h-full hover:bg-light-gray-border hover:cursor-pointer min-h-[21rem] gap-y-4;
+    }
+
+    .card-media {
+        @apply w-full aspect-square overflow-hidden border border-off-white rounded;
+    }
+
+    .card-image {
+        @apply w-full h-full object-cover object-center;
+    }
+
+    .card-content {
+        @apply flex flex-col justify-center items-center text-center w-full pb-2;
+    }
+
+    .card-title {
+        @apply font-bold text-sm leading-[19.6px] tracking-[-0.07px];
+    }
+
+    .h3 {
+        @apply text-gray text-xl font-bold tracking-[-1.2px];
+    }
+
+    .h1 {
+        @apply text-gray text-xl font-bold tracking-[-1.2px];
+    }
+
+    /* .input-control {
+        @apply rounded-[5px] focus:ring-2 focus:ring-blue focus:outline-none focus:border-none border border-rare-gray py-2 text-sm tracking-[-0.4px] text-common-gray ps-3.5;
+    } */
+
+    /* .input-control {
+        @apply w-full text-sm px-4 py-2 text-gray-900 placeholder-gray-400 bg-white border border-blue rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out;
+    } */
+
+    /* .input-styled {
+        @apply w-full text-sm px-4 py-2 text-gray-900 placeholder-gray-400 bg-white border border-blue rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out;
+    }     */
+
+    .input-control {
+        @apply w-full px-4 py-2 text-sm border border-blue rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-transparent transition duration-200 ease-in-out;
+    }    
+
+    .input-control-reset {
+        @apply focus:ring-0 focus:outline-none focus:border-none py-2 text-sm tracking-[-0.4px] text-common-gray ps-3.5 border-none;
+    }
+
+    .never-shrink {
+        @apply grow-0 shrink-0 basis-auto;
+    }
+
+    .primary-button {
+        @apply never-shrink py-3 px-8 w-fit text-sm text-white font-semibold border border-blue rounded-md bg-blue;
+    }
+
+    .danger-button {
+        @apply never-shrink py-3 px-8 w-fit text-sm text-white font-semibold border border-red rounded-md bg-red;
+    }
+
+    .secondary-button {
+        @apply never-shrink py-3 px-8 w-fit text-sm font-semibold border border-blue rounded-md bg-light-blue;
+    }
+
+    .bordered {
+        @apply border-t border-t-grayed my-2.5;
+    }
+
+    .normal-input {
+        @apply focus-within:ring-1 focus-within:ring-blue pr-3.5 border border-blue;
+    }
+
+    .bordered-input {
+        @apply border border-shalow-gray focus:border-blue;
+    }
+
+    .error-input {
+        @apply focus-within:ring-[0.5px] focus-within:ring-red pr-3.5 border border-red;
+    }
+
+    .error-input-field {
+        @apply bg-red/10 border border-red/50 text-red/90 placeholder-red/70 focus:ring-red focus:border-red/50;
+    }
+
+    .error {
+        @apply text-red text-xs block italic mt-1 capitalize;
+    }
+
+    .error-box {
+        @apply border border-red rounded-md text-xs text-red p-1.5 my-1 text-center;
+    }
+
+    .success-box {
+        @apply border border-green-500 rounded-md text-xs text-green-500 p-1.5 my-1 text-center;
+    }
+
+    .info-box {
+        @apply border border-blue-400 rounded-md text-xs text-blue-500 p-1.5 my-6 text-center;
+    }
+
+    .input {
+        @apply grow input-control-reset rounded-lg placeholder:text-gray placeholder:text-xs;
+    }
+   
+}
+
+.styled_select {
+    overflow: hidden;
+    /* background-color: var(--white, #36c6f3); */
+    /* background-image: url(pulic/img/select_bg.svg); */
+    background-image: url(/public/img/angle-down.svg);
+    background-repeat: no-repeat;
+    /* move the image 15px to the left and vertically center it */
+    background-position: calc(100% - 10px) center;
+    background-size: 10%;
+
+    border: 1px solid #808183;
+    /* border-radius: 10px; */
+}
+
+@keyframes dots {
+    0% { content: "."; }
+    20% { content: ".."; }
+    40% { content: "..."; }
+    60% { content: "...."; }
+    80% { content: "....."; }
+}
+
+.dots::after {
+    content: "";
+    animation: dots 1.5s infinite steps(1);
+}
+
+.tr-status { @apply capitalize; }
+.text-approved { @apply text-green-600 tr-status; }
+.text-processing { @apply text-blue tr-status; }
+.text-rejected,
+.text-cancelled { @apply text-red tr-status; } 
+.text-insufficientfunds	{ @apply text-yellow capitalize; }
+
+
+.styled_select select {
+    background: transparent;
+    width: 100%;
+    border: 0;
+    height: 100%;
+    margin: 0;
+    font-size: 14px;
+    -moz-appearance: window;
+    -webkit-appearance: none;
+    outline: none;
+    cursor: pointer;
+}
+
+.styled_select select:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #000;
+}
+
+.bread-crumbs li {
+    position: relative;
+    padding-right: 20px;
+}
+
+.bread-crumbs li a.active {
+    color: #36c6f3;
+}
+
+.bread-crumbs li:not(:last-child)::after {
+    content: "/";
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    right: 8px;
+    color: #A3A3A3;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+}
+
+.category-widget {
+    background: rgba(54, 198, 243, 0.15);
+}
+
+/* Sets the mobile/tablet image as the default background image for .hero-banner. This will apply to all screen sizes by default. */
+.hero-banner {
+    background-color: lightgray;
+    background-position: right;
+    background-size: cover;
+    background-repeat: no-repeat;
+    /* Default image for mobile and tablets */
+    background-image: url(/public/img/index-banner-pet-vet-mobile.jpg);
+}
+
+.tabs button[aria-selected="true"] {
+    border-bottom: 4px solid #36c6f3;
+    color: #36c6f3;
+}
+
+.tabs button[aria-selected="false"] {
+    border-bottom: 0;
+}
+
+.all-categories-list {
+    width: 100%;
+    max-width: 25.625rem !important;
+}
+
+:root {
+    --base-font-size: 16;
+    --base-viewport-width: 1536;
+}
+
+/* Where there are no media queries */
+html {
+    /* font-size: 0.93vw; */
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+label {
+    @apply text-sm my-1;
+}
+
+
+/* 1536px and above: 1vw */
+@media (min-width: 1440px) {
+    html {
+        font-size: calc((var(--base-font-size) / 1440) * 100vw) !important;
+    }
+
+    .hero-banner {
+        height: 30rem !important;
+    }
+}
+
+@media only screen and (min-width: 1029px) and (max-width: 1439px) {
+    html {
+        font-size: calc((var(--base-font-size) / 1439) * 100vw) !important;
+    }
+
+    .hero-banner {
+        height: 30rem !important;
+        /* margin-top: 11.5rem !important; */
+    }
+}
+
+/* Desktop (1024px and above) */
+@media (min-width: 1024px) {
+    .hero-banner {
+        height: 21rem;
+        /* margin-top: 7.5rem; */
+        background-image: url(/public/img/hero-banner-desktop.jpg);
+        background-position: top;
+    }
+}
+
+/* Close to 1024px (between 1020px and 1028px) */
+@media only screen and (min-width: 1020px) and (max-width: 1023px) {
+    html {
+        font-size: calc((var(--base-font-size) / 1028) * 100vw) !important;
+    }
+}
+
+/* Other Tablets i.e. iPad Pro and Surface Pro 7  */
+@media only screen and (min-width: 900px) and (max-width: 960px) {
+    html {
+        font-size: calc((var(--base-font-size) / 960) * 100vw) !important;
+    }
+}
+
+/* Common iPads i.e. Mini and Air */
+@media only screen and (min-width: 768px) and (max-width: 899px) {
+    html {
+        font-size: calc((var(--base-font-size) / 900) * 100vw) !important;
+    }
+
+    .hero-banner {
+        height: 24rem;
+        /* margin-top: 9rem; */
+    }
+}
+
+/* Tablets */
+@media only screen and (min-width: 500px) and (max-width: 768px) {
+    html {
+        font-size: calc((var(--base-font-size) / 768) * 100vw) !important;
+    }
+
+    .hero-banner {
+        height: 21rem;
+        /* margin-top: 9rem; */
+    }
+}
+
+
+/* Larger phones 
+  All common phones i.e. iPhone 12, 14, 15 pro and pro-max */
+@media only screen and (min-width: 430px) and (max-width: 500px) {
+    html {
+        font-size: calc((var(--base-font-size) / 500) * 100vw) !important;
+    }
+
+    .hero-banner {
+        height: 13rem;
+        /* margin-top: 8.75rem; */
+    }
+}
+
+/* Smaller phones 
+  All phones upto iPhone 14 Pro and Below */
+@media (max-width: 430px) {
+    html {
+        font-size: calc((var(--base-font-size) / 430) * 100vw) !important;
+    }
+
+    .hero-banner {
+        height: 11.938rem;
+        /* margin-top: 8.5rem; */
+    }
+}
