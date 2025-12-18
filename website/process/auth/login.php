@@ -49,9 +49,9 @@ if(isset($customer['id'])){
         'email' => base64_encode($customer['email']),
         'fname' => base64_encode($customer['fname']),
         'lname' => base64_encode($customer['lname']),
-        'type' => base64_encode($customer['type']),
-        'longitude' => base64_encode($customer['longitude']),
-        'latitude' => base64_encode($customer['latitude']),
+        //'type' => base64_encode($customer['type']),
+        //'longitude' => base64_encode($customer['longitude']),
+        //'latitude' => base64_encode($customer['latitude']),
         'typeId' => $customer['typeId']
     ];
 
