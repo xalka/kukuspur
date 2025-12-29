@@ -1,430 +1,156 @@
 <?php
 
-function cartSummary($items=null,$shipping=150){
-    $data = [
-        'subtotal' => 0,
-        'discount' => 0,
-        'tax' => 0,
-        'total' => 0,
-    ];
-    
-    foreach ($items as $item) {
-        $itemQuantity = $item['qty'];
-        $itemPrice = $item['price'];
-        $itemDiscount = $item['discount']; // Assuming this is a fixed discount amount per item
-        $itemTaxRate = $item['tax'];      // Assuming this is a decimal tax rate (e.g., 0.00 for 0%, 0.15 for 15%)
-    
-        // Calculate subtotal for the current item (before discount and tax)
-        $itemSubtotal = $itemQuantity * $itemPrice;
-        $data['subtotal'] += $itemSubtotal;
-    
-        // Calculate discount for the current item
-        $itemTotalDiscount = $itemQuantity * $itemDiscount;
-        $data['discount'] += $itemTotalDiscount;
-    
-        // Calculate amount after discount for tax calculation
-        $priceAfterDiscount = $itemSubtotal - $itemTotalDiscount;
-    
-        // Calculate tax for the current item
-        $itemTotalTax = $priceAfterDiscount * $itemTaxRate;
-        $data['tax'] += $itemTotalTax;
-    
-        // Calculate total for the current item (price - discount + tax)
-        $itemGrandTotal = $priceAfterDiscount + $itemTotalTax;
-        $data['total'] += $itemGrandTotal;
-    }
-    
-    $data['shipping'] = $shipping;
-    
-    $data['total'] += $shipping;
-    
-    foreach ($data as $key => $value) {
-        $data[$key] = number_format(ceil($value), 2);
-    }
-    return $data;    
-}
-
-function uploadContactsFile($file=null,$title=null){  
-    if (isset($file) && $file['error'] === 0) {
-        $filename = uniqid().time().'_'.strtolower($title.'.'.$file['name']);
-        $targetPath = BASE_DIR.'uploads/'.$filename;
-        $errors = null;
-
-        if($file['error'] !== UPLOAD_ERR_OK){
-            return [
-                'status' => 400,
-                'message' => 'Error during upload: '. $file['error']
-            ];
-        }
-        
-        $allowedTypes = [
-            'text/csv',  // CSV
-            'application/vnd.ms-excel',  // XLS
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
-            'application/vnd.ms-excel.sheet.macroEnabled.12', // XLSM
-            'application/vnd.oasis.opendocument.spreadsheet' // ODS
-        ];
-
-        if(!in_array($file['type'], $allowedTypes)){
-            return [
-                'status' => 400,
-                'message' => 'Invalid file type'
-            ];             
-        }
-        
-        if($file['size'] > FILE_MAX_SIZE){
-            return [
-                'status' => 400,
-                'message' => 'File size exceeds the maximum limit of '.FILE_MAX_SIZE.' GB'
-            ];
-        }
-        
-        if (is_null($errors) && move_uploaded_file($file['tmp_name'],$targetPath)) {
-            $request = [
-                'title' => validString($title)
-            ];
-
-            if (($handle = fopen($targetPath, "r")) !== FALSE) {
-                while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                    if(is_numeric($data[0])){
-                        $contacts[] = [
-                            'phone' => validPhone($data[0]),
-                            'fname' => validString($data[1]),
-                            'lname' => validString($data[2])
-                        ];
-                    }
-                }
-                fclose($handle);
-                return $contacts;
-            } else {
-                return [
-                    'status' => 400,
-                    'message' => 'Error opening file.'
-                ];
-            }
-            unlink($targetPath);
-        } else {
-            return [
-                'status' => 400,
-                'message' => 'Error uploading file.'
-            ];
-        }
-    } else {
-        return [
-            'status' => 400,
-            'message' => 'No file uploaded.'
-        ];
+function csrfToken(){
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        http_response_code(403);
+        echo json_encode(["status" => 400,"message" => "Refresh your page"]);
+        exit;
     }
 }
 
-function Authorize(string $module = null, ?string $action = null): bool {
-    if(!isset($_SESSION[SESSION_KEY]['auth']) || !isset($_SESSION[SESSION_KEY]['roleId'])) return false;
+function Authenticated(): bool {
+    if(!isset($_SESSION[SESSION_KEY]['auth']) || $_SESSION[SESSION_KEY]['auth'] != true) return false;
+    else return true;
+}
 
-    global $role;
-
-    $request = [ 
-        'roleId' => base64_decode($_SESSION[SESSION_KEY]['roleId'])
-    ];
-    $role = json_decode(callAPI('GET','role/v1/view',$request,[]),1)[0]['permissions'];
-
-    if(!array_key_exists($module, $role)) return false;
-    
-    if(!in_array($action,array_column($role[$module],'permission')) ) return false;
-
+function Authorization(){
+    // check if authenticate
+    if(!Authenticated()) return false;
+     
+    // check for subscription
     return true;
-
-    /*
-    // Validate session and permissions structure
-    if (!isset($_SESSION[SESSION_KEY]['permissions'])) {
-        error_log('Authorization failed: No permissions found in session');
-        return false;
-    }
-
-    $permissions = $_SESSION[SESSION_KEY]['permissions'];
-    // get permissions from api
-
-    // Validate module exists in permissions
-    if (!isset($permissions[$modurl])) {
-        error_log("Authorization failed: Module '$modurl' not found in permissions");
-        return false;
-    }
-
-    $modulePermissions = $permissions[$modurl];
-
-    // Validate module permissions structure
-    if (!isset($modulePermissions['perms']) || !is_array($modulePermissions['perms'])) {
-        error_log("Authorization failed: Invalid permissions structure for module '$modurl'");
-        return false;
-    }
-
-    // Check action permission if specified
-    if ($action !== null) {
-        $allowedActions = array_column($modulePermissions['perms'], 'permission');
-        if (!in_array($action, $allowedActions, true)) {
-            error_log("Authorization failed: Action '$action' not allowed for module '$modurl'");
-            return false;
-        }
-    }
-
-    return true;
-    */
 }
 
-function ValidateSession() {
-    if ($_SESSION[SESSION_KEY]['ip'] !== $_SERVER['REMOTE_ADDR'] || $_SESSION[SESSION_KEY]['user_agent'] !== $_SERVER['HTTP_USER_AGENT']) {
-        session_destroy();
-        header('Location: /login.php');
-        exit();
-    }
+function callAPI($method=null, $url=null, $headers=null, $request=null){
+    if(is_null($url)) die('Request parameters required');
+    if(is_array($request)) $request = json_encode($request);   
 
-    // Session timeout (30 minutes)
-    if (time() - $_SESSION[SESSION_KEY]['last_activity'] > 1800) {
-        session_destroy();
-        header('Location: /login.php?timeout=1');
-        exit();
-    }
-}
-
-function Authentication(){
-    $authPages = ['login.php', 'register.php', 'activate.php', 'forgot.php', 'resetpassword.php'];
-    $currentPage = basename($_SERVER['SCRIPT_NAME']);
-
-    // Check if user is logged in
-    $isLoggedIn = isset($_SESSION[SESSION_KEY]) && isset($_SESSION[SESSION_KEY]['auth']) && $_SESSION[SESSION_KEY]['auth'] && !empty($_SESSION[SESSION_KEY]['id']);
-
-    // Redirect logic for authenticated users
-    if ($isLoggedIn) {
-        // If trying to access auth page, redirect to dashboard
-        if (in_array($currentPage, $authPages)) {
-            $redirectUrl = $_SESSION[SESSION_KEY]['last_visited'] ?? '/';
-            header('Location: ' . filter_var($redirectUrl, FILTER_SANITIZE_URL));
-            exit();
-        }
-        
-        // Update last visited time
-        $_SESSION[SESSION_KEY]['last_activity'] = time();
-        return true;
-    }
-
-    // Redirect logic for guests
-    if (!in_array($currentPage, $authPages)) {
-        $_SESSION['redirect_url'] = $_SERVER['REQUEST_URI'];
-        header('Location: /login');
-        exit();
-    }
-
-    return false;
-}
-
-function generateCSRFToken() {
-    if(empty($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf_token'];
-}
-
-function isLoggedInDel(){
-    if(isset($_SESSION[SESSION_KEY]) && $_SESSION[SESSION_KEY]['auth']){
-        if(isset($_SERVER['HTTP_REFERER'])) $url = $_SERVER['HTTP_REFERER'];
-        // elseif($_SESSION[SESSION_KEY]['action']=='activation') $url = '/activate';
-        else $url = '/';
-        redirect($url);
-    }
-}
-
-function authenticateDel($url = '/dashboard') {
-    // Ensure the session is started and the session key is defined
-    if (!isset($_SESSION[SESSION_KEY])) {
-        redirect('/login');
-    } 
-
-    // Check if the user needs to activate
-    if (isset($_SESSION[SESSION_KEY]['action']) && $_SESSION[SESSION_KEY]['action']=='activation') return true;
-
-    // Check if the user is authenticated
-    if (!isset($_SESSION[SESSION_KEY]['auth'])) ReqForbidden();
-
-    // Remove it once the permissions work
-    return true;
-
-    // Normalize the requested URL path
-    $modurl = ltrim(parse_url($url)['path'], '/');
-
-    // Define allowed URLs for direct access
-    $allowedUrls = ['contribution', 'loan', 'profile', 'guarantee'];
-
-    // Check if the requested URL is in the allowed list
-    if (!in_array($modurl, $allowedUrls)) {
-        $perms = $_SESSION[SESSION_KEY]['permissions'] ?? [];
-
-        // Redirect if permissions do not allow access
-        if (!array_key_exists($modurl, $perms)) {
-            redirect('/profile'); // Optionally, you can call ReqForbidden() here as well
-        }
-
-        // Check for query parameters
-        if (isset(parse_url($url)['query'])) {
-            parse_str(parse_url($url)['query'], $params);
-            $action = $params['action'] ?? null;
-
-            // Validate action permissions
-            if ($action && !in_array($action, array_column($perms[$modurl]['perms'], 'permission'))) {
-                ReqForbidden();
-            }
-        }
-    }
-}
-
-function authorizeDel($modurl=null,$action=null){ //return 1;
-    // $headers = getallheaders();
-    // if(!isset($headers['Saccoid'])) ReqForbidden();
-    if(!isset($_SESSION[SESSION_KEY]['permissions'])) return 0;
-    $perms = $_SESSION[SESSION_KEY]['permissions'];
-    // $selfurl = ltrim(parse_url($url)['path'],'/');
-    if(!in_array($modurl,array_keys($perms))) return 0;
-    elseif(!is_null($action) && !in_array($action,array_column($perms[$modurl]['perms'],'permission'))) return 0;
-    else return 1;
-}
-
-function callAPI($method = 'GET', $url = null, $request = null, $headers = null, $timeout = 300){
-    if(is_null($url)) return 'Error: URL parameter is required';
-    
     $curl = curl_init();
 
-    // Set headers if provided
-    if ($headers) curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-
-    // Handle different HTTP methods
-    switch (strtoupper($method)) {
-        case 'POST':
+    switch ($method){
+        case "POST":
             curl_setopt($curl, CURLOPT_POST, true);
-            // if (isset($request['file']) && is_file($request['file'])) {
-            if (isset($request['file'])) {
-                $file = $request['file']['file'];
-                $request['file'] = new CURLFile($file['tmp_name'], $file['type'], $file['name']);
-            }
-            if(is_array($request)) $request = json_encode($request);
-            if ($request) curl_setopt($curl, CURLOPT_POSTFIELDS, $request);
+            if($request) curl_setopt($curl, CURLOPT_POSTFIELDS, $request);
             break;
 
-        case 'PUT':
-        case 'PATCH':
-        case 'DELETE':
-            if(is_array($request)) $request = json_encode($request);
-
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, strtoupper($method));
-            if ($request) curl_setopt($curl, CURLOPT_POSTFIELDS, $request);
+        case "PUT":
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
+            if($request) curl_setopt($curl, CURLOPT_POSTFIELDS, $request);                              
             break;
 
-        case 'GET':
+        case "PATCH":
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+            if($request) curl_setopt($curl, CURLOPT_POSTFIELDS, $request);                              
+            break;
+
+        case "GET":
         default:
-            if ($request) {
-                $url = sprintf("%s?%s", $url, http_build_query($request));
-                // print_r($url); exit;
-            }
-            break;
+            if($request) $url = sprintf("%s?%s", $url, http_build_query(json_decode($request,1)));
     }
-    
-    // Set the cURL options
-    $url = API_HOST.$url;
-    curl_setopt($curl, CURLOPT_URL, $url);
+
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // 1
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false); // 2    
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
 
-    // Execute the cURL request
-    $result = curl_exec($curl);
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_HTTPHEADER,$headers);
+    
+    // OPTIONS:
+    // curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    // curl_setopt($curl, CURLOPT_SSLCERT, '/etc/ssl/mycerts/server.crt');
+    // curl_setopt($curl, CURLOPT_SSLKEY, '/etc/ssl/mycerts/server.key');
+    // curl_setopt($curl, CURLOPT_CAINFO, '/etc/ssl/mycerts/server.crt');
 
-    // Check for errors
+    // EXECUTE:
+    $response = curl_exec($curl);
     if (curl_errno($curl)) {
-        $error_message = curl_error($curl);
+        $error = curl_error($curl);
         curl_close($curl);
-        return 'Curl error: ' . $error_message;
+        return "Curl error: " . $error;
     }
-
-    // Close cURL session
+    $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     curl_close($curl);
-
-    // Return the result
-    return $result ? $result : 'No response or empty result';
+    if ($status === 200) return $response;
+    else return "Failed; Status: $status. Response: $response";
 }
 
-function encrypt($data) { return $data;
-    $ivLength = openssl_cipher_iv_length('aes-256-cbc');
-    $iv = openssl_random_pseudo_bytes($ivLength);
-    $encryptedData = openssl_encrypt($data,'aes-256-cbc',PASSWORD_KEY,0,$iv);
-    return base64_encode($iv.$encryptedData);
+function passEncrype($pass,$cost=10){
+    $options = ['cost'=>$cost];
+    return password_hash($pass,PASSWORD_BCRYPT,$options);
 }
 
 function unnumber_format($value=null){
     return filter_var(str_replace('.00','',$value),FILTER_SANITIZE_NUMBER_INT);
 }
 
-function strRand($start=7,$length=5){
-    return strtoupper(substr(md5(rand(0,time())),$start,$length)).time();
+function datetime($format='Y-m-d H:i:s',$value=null){
+    return date($format,strtotime($value));
+}
+
+function strRand($length=6){
+    $length = max(4, $length); 
+    $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    $otp = '';
+    $maxIndex = strlen($characters)-1;
+    for ($i = 0; $i < $length; $i++) {
+        $otp .= $characters[random_int(0, $maxIndex)];
+    }
+    return $otp;    
 }
 
 function intRand($length=6){
-    // return str_pad(mt_rand(0,999999),6,'T',STR_PAD_LEFT);
-    return mt_rand(0,999999);
-}
-
-function activeTab($tab){
-    return strpos($_SERVER['REQUEST_URI'],$tab) ? 'active' : '';
-}
-
-function strRandSioka($length=6){
-    $str = "";
-    $characters = array_merge(range('A','Z'), range('a','z'), range('0','9'));
-    $max = count($characters) - 1;
+    $length = max(4, $length);
+    $otp = '';
     for ($i = 0; $i < $length; $i++) {
-        $rand = mt_rand(0, $max);
-        $str .= $characters[$rand];
+        $otp .= random_int(0, 9);
     }
-    return strtoupper($str);
-}
+    return validInt($otp);
+} 
 
 function validString(?string $value): string|false {
-    // Remove extra spaces
-    $value = trim($value);
-    // Validate: allow only letters and spaces
-    if ($value !== '' && preg_match('/^[a-zA-Z\s]+$/', $value)) {
-        // Sanitize: convert special characters to HTML entities
-        return filter_var($value, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    if ($value !== null && strlen(trim($value)) > 0) {
+        return filter_var(trim($value), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     }
-    return false; // Invalid input
+    return false;
 }
 
-
-function validInt($value=null){
-    if(filter_var($value, FILTER_VALIDATE_INT))
-        return (int)filter_var($value,FILTER_SANITIZE_NUMBER_INT);
-    else return false;
+function validInt($value = null): int|false {
+    if (filter_var($value, FILTER_VALIDATE_INT) !== false) {
+        return (int)$value;
+    }
+    return false;
 }
 
 function validPhone($phone){
-    return (int)'254'.substr($phone,-9,9);
-    // Remove any non-digit characters from the phone number
     $phone = preg_replace('/\D/', '', $phone);
-
-    // Validate the phone number against the Kenyan format
-    $pattern = '/^(?:\+?254|0)(?:[17]\d{8}|[2-9]\d{6,7})$/';
+    if (substr($phone, 0, 1) === '0') {
+        $phone = '254' . substr($phone, 1);
+    } elseif (substr($phone, 0, 3) !== '254'){
+        $phone = '254'.$phone;
+    }
+    
+    $pattern = '/^254(?:[17]\d{8}|[2-9]\d{7})$/';
     if (preg_match($pattern, $phone)) {
-        // Format the phone number consistently (e.g., add country code and separators)
-        $phone = '254' . substr($phone, -9, 9);
         return (int)$phone;
     } else {
-        return false; // Invalid phone number
+        return false;
     }
 }
 
-function validEmail($email=null){
-    if(filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        return filter_var($email, FILTER_SANITIZE_EMAIL);
-    } else return 0;
+function formatValue($value, $isString = false) {
+    if (!isset($value) || $value === '') return 'NULL';
+    return $isString ? "'" . addslashes($value) . "'" : $value;
+}
+
+function validEmail(?string $email): string|false {
+    $sanitized = filter_var($email, FILTER_SANITIZE_EMAIL);
+    if (filter_var($sanitized, FILTER_VALIDATE_EMAIL)) {
+        return strtolower($sanitized);
+    }
+    return false;
 }
 
 function print_j($value=null){
-    // http_response_code((int)$code);
     header('Content-Type: application/json');
     print_r(json_encode($value));
 }
@@ -457,7 +183,7 @@ function ReqGet(){
 function ReqDelete(){
     if($_SERVER['REQUEST_METHOD']=='DELETE') return 1;
     else return 0;
-}
+}	
 
 function ReqPut(){
     if($_SERVER['REQUEST_METHOD']=='PUT') return 1;
@@ -494,12 +220,67 @@ function ReqMethodNotAllowed(){
     exit;
 }
 
-function writeToFile($file=null,$data=null){
-    if (file_exists($file)) {
-        file_put_contents($file, "\n".date('H:i:s')." : $data", FILE_APPEND);
-    } else {
-        file_put_contents($file, date('H:i:s')." : $data");
-        exec("chown -R www-data:www-data ".$file);
-        chmod($file,0644);
+function writeToFile($file = null, $data = null) {
+    if (empty($file) || $data === null) {
+        error_log("writeToFile: Invalid file path or data provided. File: '" . (string)$file . "', Data type: " . gettype($data));
+        return false;
     }
+    
+    $directory = dirname($file);
+    
+    if (!file_exists($directory)) {
+        if (!mkdir($directory, 1777, true)) {
+            error_log("writeToFile: Failed to create directory '$directory'. " ."Please check parent directory permissions or SELinux/AppArmor policies.");
+            return false;
+        }
+    }
+    
+    if (is_array($data)) {
+        $data = json_encode($data);
+        if ($data === false) {
+            error_log("writeToFile: Failed to encode data to JSON for file '$file'.");
+            return false;
+        }
+    }
+    
+    $desiredFilePermissions = 1777;
+    $logEntry = date('Y-m-d H:i:s') . " : " . $data;
+
+    if (file_exists($file)) {
+        $logEntry = "\n" . $logEntry;
+    }
+
+    // Attempt to write the content to the file.
+    try {
+        $result = file_put_contents($file, $logEntry, FILE_APPEND | LOCK_EX);
+        if ($result === false) {
+            error_log("writeToFile: Failed to write content to file '$file'. " ."This usually means the PHP user lacks write access. " ."Check file/directory permissions or SELinux/AppArmor policies.");
+            return false;
+        }
+        chmod($file, $desiredFilePermissions);
+        chown($file, "www-data");
+        return true;
+    } catch (Exception $e) {
+        error_log("writeToFile: An unexpected error occurred while writing to file '$file'. " ."Message: " . $e->getMessage());
+        return false;
+    }
+}
+
+function getIp() {
+    $ipaddress = '';
+    if (getenv('HTTP_CLIENT_IP'))
+        $ipaddress = getenv('HTTP_CLIENT_IP');
+    else if(getenv('HTTP_X_FORWARDED_FOR'))
+        $ipaddress = getenv('HTTP_X_FORWARDED_FOR');
+    else if(getenv('HTTP_X_FORWARDED'))
+        $ipaddress = getenv('HTTP_X_FORWARDED');
+    else if(getenv('HTTP_FORWARDED_FOR'))
+        $ipaddress = getenv('HTTP_FORWARDED_FOR');
+    else if(getenv('HTTP_FORWARDED'))
+       $ipaddress = getenv('HTTP_FORWARDED');
+    else if(getenv('REMOTE_ADDR'))
+        $ipaddress = getenv('REMOTE_ADDR');
+    else
+        $ipaddress = 'UNKNOWN';
+    return $ipaddress;
 }

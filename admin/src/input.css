@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+a {
+    @apply text-gray-500 hover:text-gray-800 cursor-pointer;
+}
+.btn {
+    @apply py-2 px-4 cursor-pointer font-semibold rounded-lg shadow-md transition duration-300 ease-in-out;
+}
+.btn-submit {
+    @apply bg-green-600 text-white hover:bg-green-700 w-full;
+}
+.btn-create {
+    @apply bg-gray-400 text-white hover:bg-gray-600 ml-4 rounded-full px-2 py-1;
+}
+.btn-draft {
+    @apply bg-gray-300 text-gray-800 px-5 py-2 rounded hover:bg-gray-500 hover:text-white cursor-pointer;
+}
+.btn-publish {
+    @apply bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 cursor-pointer;
+}
+.form-title {
+    @apply text-2xl font-bold text-center mb-6 text-gray-800;
+}
+input {
+    @apply w-full px-3 py-2 border-1 border-gray-400 rounded-lg;
+}
+.input-file {
+    @apply mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-gray-700 hover:file:bg-blue-100 cursor-pointer;
+}
+select {
+    @apply w-full border border-gray-300 rounded px-4 py-2 focus:ring-1 focus:ring-gray-500 capitalize;
+}
+textarea {
+    @apply w-full h-48 p-4 border border-gray-300 rounded focus:ring-1 focus:ring-gray-500 resize-none;
+}
+.form-view input,
+.form-view label,
+.form-view select,
+.form-view textarea {
+    @apply pointer-events-none;
+}
+.form-alert {
+    @apply p-4 mb-4 text-sm rounded-lg shadow-2xl border-1;
+}
+.form-alert-error {
+    @apply bg-red-50 text-red-800 border-red-200;
+}
+.form-alert-success {
+    @apply bg-green-100 text-green-800 border-green-200;
+}
+.form-alert-info {
+    @apply bg-blue-100 border-blue-500 text-blue-900;
+}
+label {
+    @apply block text-sm font-medium text-gray-700 mb-2 mt-4;
+}
+.form-option {
+    @apply text-center text-sm mt-4;
+}
+.form-option button {
+    @apply text-gray-600 hover:underline cursor-pointer font-semibold;
+}
+aside {
+    @apply w-64 bg-white shadow-lg p-4 flex-shrink-0 hidden md:block md:relative absolute z-50 h-full transition-transform transform -translate-x-full md:translate-x-0 duration-300;
+}
+aside li a {
+    @apply block px-3 py-3 border-b text-gray-700 border-gray-300 hover:bg-gray-100;
+}
+header {
+    @apply flex justify-between items-center px-6 py-4 bg-white shadow-sm mb-4;
+}
+main {
+    @apply overflow-x-auto;
+}
+table {
+    @apply min-w-full bg-white rounded shadow-lg;
+}
+thead tr {
+    @apply font-semibold text-left border-b border-gray-200;
+}
+tbody tr {
+    @apply hover:bg-gray-50 cursor-pointer border-b border-gray-200;
+}
+thead tr th,
+tbody tr td {
+    @apply py-2 px-4;
+}
+.tr-action button {
+    @apply text-gray-600 hover:text-gray-900 focus:outline-none cursor-pointer;
+}
+.tr-action > div {
+    @apply absolute right-4 mt-2 w-36 bg-white rounded shadow hidden group-hover:block z-50;
+}
+.tr-action > div a {
+    @apply flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100;
+}
+.tr-action > div button {
+    @apply flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100;
+}
+.topstory-true {
+    @apply bg-green-100 text-green-800 border-green-200 rounded-full p-2 text-sm;
+}
+.topstory-false {
+    @apply bg-red-100 text-red-800 border-red-200 rounded-full p-2 text-sm;
+}
+.table-btn {
+    @apply text-xs px-3 py-1 rounded-full text-white cursor-pointer;
+}
+.btn-view {
+    @apply bg-blue-400 hover:bg-blue-500;
+}
+.btn-edit {
+    @apply bg-yellow-500 hover:bg-yellow-600;
+}
+.btn-delete {
+    @apply bg-red-500 hover:bg-red-600;
+}
+.checkbox {
+    @apply accent-black hover:accent-green-500 w-full !w-auto;
+}
+.td-draft {
+    @apply text-gray-500;
+}
+.td-approved {
+    @apply text-green-600;
+}
+.td-submitted {
+    @apply text-blue-500;
+}
+.td-rejected {
+    @apply text-red-600;
+}
+
+/*
+max-w-xs → Extra small modal
+max-w-sm → Small
+max-w-md → Medium
+max-w-lg → Large
+max-w-xl → Extra large
+max-w-2xl, 3xl, up to 7xl → Very wide modals
+*/

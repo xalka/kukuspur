@@ -1,0 +1,25 @@
+{
+  "name": "babutalk",
+  "version": "1.0.0",
+  "description": "BabuTalk",
+  "keywords": [
+    "BabuTalk",
+    "old",
+    "stories"
+  ],
+  "license": "ISC",
+  "author": "joshua muusyoka",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tailwindcss -i ./src/input.css -o ./public/css/style.css --minify",
+    "build": "tailwindcss -i ./src/input.css -o ./public/css/style.css --minify",
+    "watch": "tailwindcss -i ./src/input.css -o ./public/css/style.css --watch",    
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.11",
+    "tailwindcss": "^4.1.11"
+  },
+  "devDependencies": {}
+}
